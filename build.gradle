@@ -1,0 +1,93 @@
+plugins {
+    id 'java'
+    id 'eclipse'
+    id "org.jetbrains.gradle.plugin.idea-ext" version "1.0.1"
+    id 'com.github.johnrengelman.shadow' version '8.1.1'
+}
+
+group = 'com.github.jarva'
+version = '1.0.0'
+
+repositories {
+    mavenCentral()
+    maven {
+        name = "papermc-repo"
+        url = "https://repo.papermc.io/repository/maven-public/"
+    }
+    maven {
+        name = "sonatype"
+        url = "https://s01.oss.sonatype.org/content/repositories/snapshots/"
+    }
+}
+
+configurations {
+    shade
+    implementation.extendsFrom shade
+}
+
+shadowJar {
+    minimize()
+    from sourceSets.main.output
+
+    configurations = [ project.configurations.shade ]
+
+    archiveClassifier = ""
+
+    relocate 'org.spongepowered', 'shadow_vcd.spongepowered'
+    relocate 'club.minnced', 'shadow_vcd.minnced'
+    relocate 'net.dv8tion', 'shadow_vcd.dv8tion'
+}
+
+dependencies {
+    compileOnly "com.velocitypowered:velocity-api:3.1.2-SNAPSHOT"
+    annotationProcessor "com.velocitypowered:velocity-api:3.1.2-SNAPSHOT"
+
+    implementation files("./libs/carbonchat-velocity-2.1.0-SNAPSHOT.jar")
+
+    compileOnly "io.github.miniplaceholders:miniplaceholders-api:2.2.0"
+
+    shade("club.minnced:discord-webhooks:0.8.2")
+
+    shade ("net.dv8tion:JDA:5.0.0-beta.10") {
+        exclude module: 'opus-java'
+    }
+
+    shade('org.spongepowered:configurate-yaml:4.1.2')
+}
+
+def targetJavaVersion = 17
+java {
+    def javaVersion = JavaVersion.toVersion(targetJavaVersion)
+    sourceCompatibility = javaVersion
+    targetCompatibility = javaVersion
+    if (JavaVersion.current() < javaVersion) {
+        toolchain.languageVersion = JavaLanguageVersion.of(targetJavaVersion)
+    }
+}
+
+tasks.withType(JavaCompile).configureEach {
+    if (targetJavaVersion >= 10 || JavaVersion.current().isJava10Compatible()) {
+        options.release = targetJavaVersion
+    }
+}
+
+def templateSource = file('src/main/templates')
+def templateDest = layout.buildDirectory.dir('generated/sources/templates')
+def generateTemplates = tasks.register('generateTemplates', Copy) { task ->
+    def props = [
+            'version': project.version
+    ]
+    task.inputs.properties props
+
+    task.from templateSource
+    task.into templateDest
+    task.expand props
+}
+
+sourceSets.main.java.srcDir(generateTemplates.map { it.outputs })
+
+rootProject.idea.project.settings.taskTriggers.afterSync generateTemplates
+project.eclipse.synchronizationTasks(generateTemplates)
+
+build.dependsOn(shadowJar);
+jar.enabled = false
