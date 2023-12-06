@@ -27,6 +27,10 @@ public class ChannelConfigUtil {
         return channel.discord.enableMentions != null ? channel.discord.enableMentions : config.discord.enableMentions;
     }
 
+    public Boolean enableEveryoneAndHere() {
+        return channel.discord.enableEveryoneAndHere != null ? channel.discord.enableEveryoneAndHere : config.discord.enableEveryoneAndHere;
+    }
+
     // Minecraft Formats
     public String attachmentFormat() {
         return channel.minecraft.attachmentFormat != null ? channel.minecraft.attachmentFormat : config.minecraft.attachmentFormat;

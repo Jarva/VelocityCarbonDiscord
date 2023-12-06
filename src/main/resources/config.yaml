@@ -37,7 +37,7 @@ channels:
       discord:
         # Available placeholders: <uuid> <username>
         webhook:
-          url: 'https://discord.com/api/webhooks/'
+          url: 'WEBHOOK_URL'
         channel_id: 'CHANNEL_ID'
   -   name: 'carbon:staff'
       enabled: true
@@ -46,5 +46,5 @@ channels:
       discord:
         # Available placeholders: <uuid> <username>
         webhook:
-          url: 'https://discord.com/api/webhooks/'
+          url: 'WEBHOOK_URL'
         channel_id: 'CHANNEL_ID'

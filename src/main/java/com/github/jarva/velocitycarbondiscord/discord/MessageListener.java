@@ -1,6 +1,5 @@
 package com.github.jarva.velocitycarbondiscord.discord;
 
-import carbonchat.libs.com.seiama.event.EventSubscription;
 import club.minnced.discord.webhook.WebhookClient;
 import club.minnced.discord.webhook.WebhookClientBuilder;
 import club.minnced.discord.webhook.send.WebhookMessage;
@@ -19,8 +18,10 @@ import com.velocitypowered.api.proxy.Player;
 import com.velocitypowered.api.proxy.ProxyServer;
 import com.velocitypowered.api.proxy.ServerConnection;
 import com.velocitypowered.api.proxy.server.RegisteredServer;
+import dev.vankka.mcdiscordreserializer.minecraft.MinecraftSerializer;
 import net.draycia.carbon.api.CarbonChatProvider;
 import net.draycia.carbon.api.channels.ChatChannel;
+import net.draycia.carbon.api.event.CarbonEventSubscription;
 import net.draycia.carbon.api.event.events.CarbonChatEvent;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.entities.*;
@@ -45,7 +46,7 @@ public class MessageListener extends ListenerAdapter {
     private final ProxyServer server;
     private final ChannelConfigUtil config;
     private final Key channelName;
-    public final EventSubscription<CarbonChatEvent> subscription;
+    public final CarbonEventSubscription<CarbonChatEvent> subscription;
     private String webhookId = null;
     private WebhookClient webhookClient = null;
     private static final Pattern WEBHOOK_ID_REGEX = Pattern.compile("^https://discord\\.com/api/webhooks/(\\d+)/.+$");
@@ -91,8 +92,6 @@ public class MessageListener extends ListenerAdapter {
             return;
         }
 
-
-
         Message message = event.getMessage();
         MessageReference ref = message.getMessageReference();
 
@@ -101,12 +100,14 @@ public class MessageListener extends ListenerAdapter {
             return;
         }
 
+        Component content = MinecraftSerializer.INSTANCE.serialize(message.getContentDisplay());
+
         String hex = DiscordUtil.getHexColor(member);
         TagResolver.Builder builder = TagResolver.builder()
                 .tag("role_color", PlaceholderUtil.wrapString(hex))
                 .tag("username", PlaceholderUtil.wrapString(author.getName()))
                 .tag("nickname", PlaceholderUtil.wrapString(member.getEffectiveName()))
-                .tag("message", PlaceholderUtil.wrapString(message.getContentDisplay()));
+                .tag("message", Tag.selfClosingInserting(content));
 
         Component attachments = Component.empty();
         if (this.config.showAttachmentsIngame()) {
@@ -162,6 +163,9 @@ public class MessageListener extends ListenerAdapter {
             AbstractMap.SimpleEntry<Component, Component> mentions = parseMentions(renderedMessage);
             renderedMessage = mentions.getKey();
             event.message(mentions.getValue());
+        }
+        if (!this.config.enableEveryoneAndHere()) {
+            renderedMessage = parseEveryoneAndHere(renderedMessage);
         }
         renderedMessage = parseXaero(renderedMessage);
         sendMessageToDiscord(renderedMessage, player);
@@ -234,8 +238,17 @@ public class MessageListener extends ListenerAdapter {
         return message;
     }
 
+    private static final Pattern everyoneAndHerePattern = Pattern.compile("@(?<ping>everyone|here)");
+    private Component parseEveryoneAndHere(Component message) {
+        return message.replaceText(
+                TextReplacementConfig.builder().match(everyoneAndHerePattern).replacement((match, build) -> {
+                    return build.content(match.group().replace("@", "@\u200B"));
+                }).build()
+        );
+    }
+
+    private static final Pattern mentionPattern = Pattern.compile("@([a-zA-Z0-9_]{2,16})");
     private AbstractMap.SimpleEntry<Component, Component> parseMentions(Component message) {
-        Pattern mentionPattern = Pattern.compile("@([a-zA-Z0-9_]{2,16})");
         HashMap<String, Component> matches = new HashMap<String, Component>();
         Component discord = message.replaceText(
             TextReplacementConfig.builder().match(mentionPattern).replacement((match, build) -> {
@@ -262,7 +275,7 @@ public class MessageListener extends ListenerAdapter {
     }
 
     private void sendMessageToMinecraft(Component message) {
-        ChatChannel channel = CarbonChatProvider.carbonChat().channelRegistry().get(channelName);
+        ChatChannel channel = CarbonChatProvider.carbonChat().channelRegistry().channel(channelName);
         if (channel == null) return;
         CarbonChatProvider.carbonChat().server().players().stream().filter(player -> channel.hearingPermitted(player).permitted()).forEach(player -> {
             player.sendMessage(message);
