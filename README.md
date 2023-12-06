@@ -84,3 +84,7 @@ channels:
           url: 'WEBHOOK_URL'
         channel_id: 'CHANNEL_ID'
 ```
+
+## Credits
+- fooooooooooooooo: Creation of [Velocity Discord](https://modrinth.com/plugin/velocitydiscord/) which heavily inspired the features, and this README
+- Draycia: Creator of [Carbon](https://modrinth.com/plugin/carbon), as well as provided lots of help figuring out implementation details
