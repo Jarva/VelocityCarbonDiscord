@@ -118,7 +118,7 @@ sourceSets {
 modrinth {
     token = env.MODRINTH_TOKEN.value
     projectId = "velocity-carbon-discord"
-    uploadFile = jar
+    uploadFile = shadowJar
     gameVersions = [
                 "1.10",
                 "1.10.1",
