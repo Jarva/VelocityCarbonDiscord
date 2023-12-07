@@ -1,8 +1,10 @@
 plugins {
     id 'java'
     id 'eclipse'
-    id "org.jetbrains.gradle.plugin.idea-ext" version "1.0.1"
+    id 'idea'
     id 'com.github.johnrengelman.shadow' version '8.1.1'
+    id 'xyz.jpenilla.run-velocity' version '2.2.2'
+    id 'net.kyori.blossom' version '2.1.0'
 }
 
 group = 'com.github.jarva'
@@ -20,9 +22,22 @@ repositories {
     }
 }
 
+tasks.runVelocity {
+    velocityVersion '3.2.0-SNAPSHOT'
+    downloadPlugins {
+        hangar 'Carbon', '3.0.0-beta.25'
+        github 'MiniPlaceholders', 'MiniPlaceholders', '2.2.3', 'MiniPlaceholders-Velocity-2.2.3.jar'
+        url 'https://download.luckperms.net/1524/velocity/LuckPerms-Velocity-5.4.111.jar'
+    }
+}
+
 configurations {
     shade
-    implementation.extendsFrom shade
+    compileOnly.extendsFrom shade
+}
+
+jar {
+    archiveClassifier = "thin"
 }
 
 shadowJar {
@@ -33,62 +48,67 @@ shadowJar {
 
     archiveClassifier = ""
 
-    relocate 'org.spongepowered', 'shadow_vcd.spongepowered'
-    relocate 'club.minnced', 'shadow_vcd.minnced'
-    relocate 'net.dv8tion', 'shadow_vcd.dv8tion'
-    relocate 'dev.vankka', 'shadow_vcd.vankka'
+    def prefix = "shadow_vcd"
+    relocate 'kotlin', "${prefix}.kotlin"
+    relocate 'gnu.trove', "${prefix}.gnu.trove"
+    relocate 'com.fasterxml.jackson', "${prefix}.jackson"
+    relocate 'com.neovisionaries', "${prefix}.neovisionaries"
+    relocate 'org.spongepowered', "${prefix}.spongepowered"
+    relocate 'org.yaml.snakeyaml', "${prefix}.snakeyaml"
+    relocate 'io.leangen.geantyref', "${prefix}.geantyref"
+    relocate 'club.minnced', "${prefix}.minnced"
+    relocate 'net.dv8tion', "${prefix}.dv8tion"
+    relocate 'dev.vankka', "${prefix}.vankka"
+    relocate 'com.iwebpp.crypto', "${prefix}.iwebpp.crypto"
+    relocate 'org.apache.commons.collections4', "${prefix}.apache.commons.collections4"
+    relocate 'org.json', "${prefix}.orgjson"
+    relocate 'org.jetbrains.annotations', "${prefix}.jetbrains.annotations"
+    relocate 'okio', "${prefix}.okio"
+    relocate 'okhttp3', "${prefix}.okhttp3"
+
+    mergeServiceFiles()
 }
 
 dependencies {
-    compileOnly "com.velocitypowered:velocity-api:3.1.2-SNAPSHOT"
-    annotationProcessor "com.velocitypowered:velocity-api:3.1.2-SNAPSHOT"
+    compileOnly "com.velocitypowered:velocity-api:3.2.0-SNAPSHOT"
+    annotationProcessor "com.velocitypowered:velocity-api:3.2.0-SNAPSHOT"
 
-    implementation files("./libs/carbonchat-velocity-3.0.0-beta.25.jar")
+    compileOnly 'de.hexaoxi:carbonchat-api:3.0.0-beta.25'
 
     compileOnly "io.github.miniplaceholders:miniplaceholders-api:2.2.0"
 
-    shade("club.minnced:discord-webhooks:0.8.2")
-    shade ("net.dv8tion:JDA:5.0.0-beta.10") {
-        exclude module: 'opus-java'
+    shade("club.minnced:discord-webhooks:0.8.4") {
+        exclude group: 'org.slf4j'
     }
-    shade ("dev.vankka:mcdiscordreserializer:4.3.0")
+    shade("net.dv8tion:JDA:5.0.0-beta.10") {
+        exclude module: 'opus-java'
+        exclude group: 'org.slf4j'
+    }
+    shade("dev.vankka:mcdiscordreserializer:4.3.0") {
+        exclude group : 'net.kyori'
+    }
 
     shade('org.spongepowered:configurate-yaml:4.1.2')
 }
 
 def targetJavaVersion = 17
+
 java {
-    def javaVersion = JavaVersion.toVersion(targetJavaVersion)
-    sourceCompatibility = javaVersion
-    targetCompatibility = javaVersion
-    if (JavaVersion.current() < javaVersion) {
-        toolchain.languageVersion = JavaLanguageVersion.of(targetJavaVersion)
-    }
+    toolchain.languageVersion = JavaLanguageVersion.of(targetJavaVersion)
 }
 
 tasks.withType(JavaCompile).configureEach {
-    if (targetJavaVersion >= 10 || JavaVersion.current().isJava10Compatible()) {
-        options.release = targetJavaVersion
+    options.release = targetJavaVersion
+}
+
+assemble.dependsOn(shadowJar)
+
+sourceSets {
+    main {
+        blossom {
+            javaSources {
+                property("version", project.version.toString())
+            }
+        }
     }
 }
-
-def templateSource = file('src/main/templates')
-def templateDest = layout.buildDirectory.dir('generated/sources/templates')
-def generateTemplates = tasks.register('generateTemplates', Copy) { task ->
-    def props = [
-            'version': project.version
-    ]
-    task.inputs.properties props
-
-    task.from templateSource
-    task.into templateDest
-    task.expand props
-}
-
-sourceSets.main.java.srcDir(generateTemplates.map { it.outputs })
-
-rootProject.idea.project.settings.taskTriggers.afterSync generateTemplates
-project.eclipse.synchronizationTasks(generateTemplates)
-
-build.dependsOn(shadowJar);
-jar.enabled = false
