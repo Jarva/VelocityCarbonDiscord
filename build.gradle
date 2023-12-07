@@ -6,6 +6,7 @@ plugins {
     id 'xyz.jpenilla.run-velocity' version '2.2.2'
     id 'net.kyori.blossom' version '2.1.0'
     id "com.modrinth.minotaur" version "2.+"
+    id "co.uzzu.dotenv.gradle" version "3.0.0"
 }
 
 group = 'com.github.jarva'
@@ -115,7 +116,7 @@ sourceSets {
 }
 
 modrinth {
-    token = System.getenv("MODRINTH_TOKEN")
+    token = env.MODRINTH_TOKEN.value
     projectId = "velocity-carbon-discord"
     uploadFile = jar
     gameVersions = [
