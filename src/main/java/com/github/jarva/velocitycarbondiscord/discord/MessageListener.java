@@ -23,6 +23,7 @@ import net.draycia.carbon.api.CarbonChatProvider;
 import net.draycia.carbon.api.channels.ChatChannel;
 import net.draycia.carbon.api.event.CarbonEventSubscription;
 import net.draycia.carbon.api.event.events.CarbonChatEvent;
+import net.draycia.carbon.api.users.CarbonPlayer;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.entities.*;
 import net.dv8tion.jda.api.entities.channel.ChannelType;
@@ -157,8 +158,7 @@ public class MessageListener extends ListenerAdapter {
                 .tag("message", Tag.selfClosingInserting(event.message()))
                 .build();
 
-        Player player = server.getPlayer(event.sender().uuid()).get();
-        Component renderedMessage = PlaceholderUtil.resolvePlaceholders(this.config.preferWebhook() ? this.config.webhookMessage() : this.config.chat(), resolver, player);
+        Component renderedMessage = PlaceholderUtil.resolvePlaceholders(this.config.preferWebhook() ? this.config.webhookMessage() : this.config.chat(), resolver, event.sender());
         if (this.config.enableMentions()) {
             AbstractMap.SimpleEntry<Component, Component> mentions = parseMentions(renderedMessage);
             renderedMessage = mentions.getKey();
@@ -168,7 +168,7 @@ public class MessageListener extends ListenerAdapter {
             renderedMessage = parseEveryoneAndHere(renderedMessage);
         }
         renderedMessage = parseXaero(renderedMessage);
-        sendMessageToDiscord(renderedMessage, player);
+        sendMessageToDiscord(renderedMessage, event.sender());
     }
 
     @Subscribe
@@ -287,7 +287,7 @@ public class MessageListener extends ListenerAdapter {
         sendMessageToDiscord(message, null);
     }
 
-    private void sendMessageToDiscord(Component message, @Nullable Player player) {
+    private void sendMessageToDiscord(Component message, @Nullable CarbonPlayer player) {
         if (!this.config.preferWebhook() || this.config.webhookUsername() == null || this.config.webhookAvatarUrl() == null || this.webhookClient == null || player == null) {
             sendBotMessageToDiscord(message);
         } else {
@@ -304,10 +304,10 @@ public class MessageListener extends ListenerAdapter {
         }
     }
 
-    private void sendWebhookToDiscord(Component message, Player player) {
+    private void sendWebhookToDiscord(Component message, CarbonPlayer player) {
         TagResolver resolver = TagResolver.builder()
-                .tag("username", PlaceholderUtil.wrapString(player.getUsername()))
-                .tag("uuid", PlaceholderUtil.wrapString(player.getUniqueId().toString()))
+                .tag("username", PlaceholderUtil.wrapString(player.username()))
+                .tag("uuid", PlaceholderUtil.wrapString(player.uuid().toString()))
                 .build();
 
         Component usernameComponent = PlaceholderUtil.resolvePlaceholders(this.config.webhookUsername(), resolver, player);
