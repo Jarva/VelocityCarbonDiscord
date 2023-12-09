@@ -43,7 +43,7 @@ discord:
    token: 'TOKEN'
    # Available placeholders: <username>
    messages:
-      # Additional placeholders: <message>
+      # Additional placeholders: <displayname> <message>
       chat_message: '<username>: <message>'
       # Additional placeholders: <server>
       join_message: '**<username> joined <server>**'
@@ -56,7 +56,7 @@ discord:
       shutdown_message: '**Proxy shutting down**'
       start_message: '**Ready for connections**'
    webhook:
-      # Available placeholders: <uuid> <username>
+      # Available placeholders: <displayname> <username> <uuid>
       avatar_url: 'https://crafatar.com/renders/head/<uuid>?overlay'
       username: '<username>'
       # Available placeholders: <message>

@@ -155,6 +155,7 @@ public class MessageListener extends ListenerAdapter {
 
         TagResolver resolver = TagResolver.builder()
                 .tag("username", PlaceholderUtil.wrapString(event.sender().username()))
+                .tag("displayname", Tag.selfClosingInserting(event.sender().displayName()))
                 .tag("message", Tag.selfClosingInserting(event.message()))
                 .build();
 
@@ -307,6 +308,7 @@ public class MessageListener extends ListenerAdapter {
     private void sendWebhookToDiscord(Component message, CarbonPlayer player) {
         TagResolver resolver = TagResolver.builder()
                 .tag("username", PlaceholderUtil.wrapString(player.username()))
+                .tag("displayname", Tag.selfClosingInserting(player.displayName()))
                 .tag("uuid", PlaceholderUtil.wrapString(player.uuid().toString()))
                 .build();
 
