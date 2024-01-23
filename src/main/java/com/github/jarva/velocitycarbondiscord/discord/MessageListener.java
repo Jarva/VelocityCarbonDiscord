@@ -276,9 +276,10 @@ public class MessageListener extends ListenerAdapter {
     private void sendMessageToMinecraft(Component message) {
         ChatChannel channel = CarbonChatProvider.carbonChat().channelRegistry().channel(channelName);
         if (channel == null) return;
-        CarbonChatProvider.carbonChat().server().players().stream().filter(player -> channel.hearingPermitted(player).permitted()).forEach(player -> {
-            player.sendMessage(message);
-        });
+        CarbonChatProvider.carbonChat().server().players().stream()
+                .filter(player -> channel.equals(player.selectedChannel()))
+                .filter(player -> channel.hearingPermitted(player).permitted())
+                .forEach(player -> player.sendMessage(message));
         CarbonChatProvider.carbonChat().server().console().sendMessage(message);
     }
 
