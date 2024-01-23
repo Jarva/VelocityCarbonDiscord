@@ -6,7 +6,7 @@ plugins {
     id 'xyz.jpenilla.run-velocity' version '2.2.2'
     id 'net.kyori.blossom' version '2.1.0'
     id "com.modrinth.minotaur" version "2.+"
-    id "co.uzzu.dotenv.gradle" version "3.0.0"
+    id "co.uzzu.dotenv.gradle" version "4.0.0"
 }
 
 group = 'com.github.jarva'
@@ -25,11 +25,11 @@ repositories {
 }
 
 tasks.runVelocity {
-    velocityVersion '3.2.0-SNAPSHOT'
+    velocityVersion '3.3.0-SNAPSHOT'
     downloadPlugins {
-        hangar 'Carbon', '3.0.0-beta.25'
+        hangar 'Carbon', '3.0.0-beta.26'
         github 'MiniPlaceholders', 'MiniPlaceholders', '2.2.3', 'MiniPlaceholders-Velocity-2.2.3.jar'
-        url 'https://download.luckperms.net/1524/velocity/LuckPerms-Velocity-5.4.111.jar'
+        url 'https://download.luckperms.net/1529/velocity/LuckPerms-Velocity-5.4.116.jar'
     }
 }
 
@@ -72,17 +72,14 @@ shadowJar {
 }
 
 dependencies {
-    compileOnly "com.velocitypowered:velocity-api:3.2.0-SNAPSHOT"
-    annotationProcessor "com.velocitypowered:velocity-api:3.2.0-SNAPSHOT"
+    compileOnly "com.velocitypowered:velocity-api:3.3.0-SNAPSHOT"
+    annotationProcessor "com.velocitypowered:velocity-api:3.3.0-SNAPSHOT"
 
-    compileOnly 'de.hexaoxi:carbonchat-api:3.0.0-beta.25'
+    compileOnly 'de.hexaoxi:carbonchat-api:3.0.0-beta.26'
 
-    compileOnly "io.github.miniplaceholders:miniplaceholders-api:2.2.0"
+    compileOnly "io.github.miniplaceholders:miniplaceholders-api:2.2.3"
 
-    shade("club.minnced:discord-webhooks:0.8.4") {
-        exclude group: 'org.slf4j'
-    }
-    shade("net.dv8tion:JDA:5.0.0-beta.10") {
+    shade("net.dv8tion:JDA:5.0.0-beta.20") {
         exclude module: 'opus-java'
         exclude group: 'org.slf4j'
     }

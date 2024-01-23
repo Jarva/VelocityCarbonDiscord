@@ -1,14 +1,10 @@
 package com.github.jarva.velocitycarbondiscord.discord;
 
-import club.minnced.discord.webhook.WebhookClient;
-import club.minnced.discord.webhook.WebhookClientBuilder;
-import club.minnced.discord.webhook.send.WebhookMessage;
-import club.minnced.discord.webhook.send.WebhookMessageBuilder;
+import com.github.jarva.velocitycarbondiscord.VelocityCarbonDiscord;
+import com.github.jarva.velocitycarbondiscord.config.Config;
 import com.github.jarva.velocitycarbondiscord.util.ChannelConfigUtil;
 import com.github.jarva.velocitycarbondiscord.util.DiscordUtil;
 import com.github.jarva.velocitycarbondiscord.util.PlaceholderUtil;
-import com.github.jarva.velocitycarbondiscord.VelocityCarbonDiscord;
-import com.github.jarva.velocitycarbondiscord.config.Config;
 import com.velocitypowered.api.event.Subscribe;
 import com.velocitypowered.api.event.connection.DisconnectEvent;
 import com.velocitypowered.api.event.player.ServerConnectedEvent;
@@ -30,6 +26,8 @@ import net.dv8tion.jda.api.entities.channel.ChannelType;
 import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
+import net.dv8tion.jda.api.utils.messages.MessageCreateBuilder;
+import net.dv8tion.jda.api.utils.messages.MessageCreateData;
 import net.kyori.adventure.key.Key;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.TextReplacementConfig;
@@ -49,7 +47,7 @@ public class MessageListener extends ListenerAdapter {
     private final Key channelName;
     public final CarbonEventSubscription<CarbonChatEvent> subscription;
     private String webhookId = null;
-    private WebhookClient webhookClient = null;
+    private IncomingWebhookClient webhookClient = null;
     private static final Pattern WEBHOOK_ID_REGEX = Pattern.compile("^https://discord\\.com/api/webhooks/(\\d+)/.+$");
 
     public MessageListener(ProxyServer server, Config config, Config.Channel channel) {
@@ -59,7 +57,7 @@ public class MessageListener extends ListenerAdapter {
 
         if (this.config.webhookUrl() != null) {
             try {
-                this.webhookClient = new WebhookClientBuilder(this.config.webhookUrl()).build();
+                this.webhookClient = WebhookClient.createClient(VelocityCarbonDiscord.getDiscord().getClient(), this.config.webhookUrl());
                 final Matcher matcher = WEBHOOK_ID_REGEX.matcher(this.config.webhookUrl());
                 this.webhookId = matcher.find() ? matcher.group(1) : null;
             } catch (IllegalArgumentException err) {
@@ -314,11 +312,12 @@ public class MessageListener extends ListenerAdapter {
 
         Component usernameComponent = PlaceholderUtil.resolvePlaceholders(this.config.webhookUsername(), resolver, player);
         Component avatarComponent = PlaceholderUtil.resolvePlaceholders(this.config.webhookAvatarUrl(), resolver, player);
-        WebhookMessage webhookMessage = new WebhookMessageBuilder()
-                .setAvatarUrl(PlaceholderUtil.plainText(avatarComponent))
+        MessageCreateData webhookMessage = new MessageCreateBuilder()
                 .setContent(PlaceholderUtil.plainText(message))
-                .setUsername(PlaceholderUtil.plainText(usernameComponent))
                 .build();
-        webhookClient.send(webhookMessage).join();
+        webhookClient.sendMessage(webhookMessage)
+                .setAvatarUrl(PlaceholderUtil.plainText(avatarComponent))
+                .setUsername(PlaceholderUtil.plainText(usernameComponent))
+                .queue();
     }
 }
