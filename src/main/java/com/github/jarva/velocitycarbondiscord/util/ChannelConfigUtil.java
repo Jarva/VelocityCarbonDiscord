@@ -90,4 +90,19 @@ public class ChannelConfigUtil {
     public String serverSwitch() {
         return channel.discord.messages.serverSwitch != null ? channel.discord.messages.serverSwitch : config.discord.messages.serverSwitch;
     }
+    public String advancementDefault() {
+        return channel.discord.messages.advancementDefault != null ? channel.discord.messages.advancementDefault : config.discord.messages.advancementDefault;
+    }
+    public String advancementGoal() {
+        return channel.discord.messages.advancementGoal != null ? channel.discord.messages.advancementGoal : config.discord.messages.advancementGoal;
+    }
+    public String advancementTask() {
+        return channel.discord.messages.advancementTask != null ? channel.discord.messages.advancementTask : config.discord.messages.advancementTask;
+    }
+    public String advancementChallenge() {
+        return channel.discord.messages.advancementChallenge != null ? channel.discord.messages.advancementChallenge : config.discord.messages.advancementChallenge;
+    }
+    public String death() {
+        return channel.discord.messages.death != null ? channel.discord.messages.death : config.discord.messages.death;
+    }
 }

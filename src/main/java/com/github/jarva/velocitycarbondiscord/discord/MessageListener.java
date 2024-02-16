@@ -46,6 +46,7 @@ public class MessageListener extends ListenerAdapter {
     private final ChannelConfigUtil config;
     private final Key channelName;
     public final CarbonEventSubscription<CarbonChatEvent> subscription;
+    public YepListener yep = null;
     private String webhookId = null;
     private IncomingWebhookClient webhookClient = null;
     private static final Pattern WEBHOOK_ID_REGEX = Pattern.compile("^https://discord\\.com/api/webhooks/(\\d+)/.+$");
@@ -66,6 +67,9 @@ public class MessageListener extends ListenerAdapter {
         }
 
         this.subscription = CarbonChatProvider.carbonChat().eventHandler().subscribe(CarbonChatEvent.class, 0, true, this::onPlayerChat);
+        if (VelocityCarbonDiscord.yeplib) {
+            this.yep = new YepListener(this, server);
+        }
         VelocityCarbonDiscord.getLogger().info("Created listener for channels {} {}", this.channelName, this.config.channelId());
     }
 
@@ -168,6 +172,46 @@ public class MessageListener extends ListenerAdapter {
         }
         renderedMessage = parseXaero(renderedMessage);
         sendMessageToDiscord(renderedMessage, event.sender());
+    }
+
+    public void onPlayerAdvancement(Player player, String type, String title, String description) {
+        CarbonChatProvider.carbonChat().userManager().user(player.getUniqueId()).thenAccept(carbonPlayer -> {
+            if (!config.shouldBroadcastEvents()) return;
+            if (!carbonPlayer.selectedChannel().key().equals(channelName)) return;
+
+            TagResolver resolver = TagResolver.builder()
+                    .tag("username", PlaceholderUtil.wrapString(carbonPlayer.username()))
+                    .tag("displayname", Tag.selfClosingInserting(carbonPlayer.displayName()))
+                    .tag("title", PlaceholderUtil.wrapString(title))
+                    .tag("description", PlaceholderUtil.wrapString(description))
+                    .build();
+
+            String format = switch (type) {
+                case "adv_goal" -> this.config.advancementGoal();
+                case "adv_task" -> this.config.advancementTask();
+                case "adv_challenge" -> this.config.advancementChallenge();
+                default -> this.config.advancementDefault();
+            };
+
+            Component renderedMessage = PlaceholderUtil.resolvePlaceholders(format, resolver, carbonPlayer);
+            sendMessageToDiscord(renderedMessage);
+        });
+    }
+
+    public void onPlayerDeath(Player player, String message) {
+        CarbonChatProvider.carbonChat().userManager().user(player.getUniqueId()).thenAccept(carbonPlayer -> {
+            if (!config.shouldBroadcastEvents()) return;
+            if (!carbonPlayer.selectedChannel().key().equals(channelName)) return;
+
+            TagResolver resolver = TagResolver.builder()
+                    .tag("username", PlaceholderUtil.wrapString(carbonPlayer.username()))
+                    .tag("displayname", Tag.selfClosingInserting(carbonPlayer.displayName()))
+                    .tag("message", PlaceholderUtil.wrapString(message))
+                    .build();
+
+            Component renderedMessage = PlaceholderUtil.resolvePlaceholders("", resolver, carbonPlayer);
+            sendMessageToDiscord(renderedMessage);
+        });
     }
 
     @Subscribe

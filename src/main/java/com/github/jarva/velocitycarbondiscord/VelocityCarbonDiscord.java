@@ -30,6 +30,8 @@ import java.nio.file.Path;
         }
 )
 public class VelocityCarbonDiscord {
+    public static boolean yeplib = false;
+
     private static VelocityCarbonDiscord instance;
     private final ProxyServer server;
     private final @DataDirectory Path dataDirectory;
@@ -91,6 +93,7 @@ public class VelocityCarbonDiscord {
 
     @Subscribe
     public void onProxyInitialization(ProxyInitializeEvent event) {
+        yeplib = server.getPluginManager().isLoaded("yeplib");
         this.registerAll();
         this.registerCommands(server.getCommandManager());
         initialized = true;

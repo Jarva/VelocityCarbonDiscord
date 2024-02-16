@@ -3,7 +3,7 @@ plugins {
     id 'eclipse'
     id 'idea'
     id 'com.github.johnrengelman.shadow' version '8.1.1'
-    id 'xyz.jpenilla.run-velocity' version '2.2.2'
+    id 'xyz.jpenilla.run-velocity' version '2.2.3'
     id 'net.kyori.blossom' version '2.1.0'
     id "com.modrinth.minotaur" version "2.+"
     id "co.uzzu.dotenv.gradle" version "4.0.0"
@@ -22,6 +22,10 @@ repositories {
         name = "sonatype"
         url = "https://s01.oss.sonatype.org/content/repositories/snapshots/"
     }
+    maven {
+        name = "jitpack"
+        url = "https://jitpack.io/"
+    }
 }
 
 tasks.runVelocity {
@@ -29,7 +33,8 @@ tasks.runVelocity {
     downloadPlugins {
         hangar 'Carbon', '3.0.0-beta.26'
         github 'MiniPlaceholders', 'MiniPlaceholders', '2.2.3', 'MiniPlaceholders-Velocity-2.2.3.jar'
-        url 'https://download.luckperms.net/1529/velocity/LuckPerms-Velocity-5.4.116.jar'
+        url 'https://download.luckperms.net/1531/velocity/LuckPerms-Velocity-5.4.118.jar'
+        url 'https://github.com/unilock/YepLib/releases/download/1.0.0/yeplib-1.0.0.jar'
     }
 }
 
@@ -75,9 +80,11 @@ dependencies {
     compileOnly "com.velocitypowered:velocity-api:3.3.0-SNAPSHOT"
     annotationProcessor "com.velocitypowered:velocity-api:3.3.0-SNAPSHOT"
 
-    compileOnly 'de.hexaoxi:carbonchat-api:3.0.0-beta.26'
+    compileOnly "de.hexaoxi:carbonchat-api:3.0.0-beta.26"
 
     compileOnly "io.github.miniplaceholders:miniplaceholders-api:2.2.3"
+
+    compileOnly "com.github.unilock:yeplib:1.0.0"
 
     shade("net.dv8tion:JDA:5.0.0-beta.20") {
         exclude module: 'opus-java'
@@ -87,7 +94,7 @@ dependencies {
         exclude group : 'net.kyori'
     }
 
-    shade('org.spongepowered:configurate-yaml:4.1.2')
+    shade("org.spongepowered:configurate-yaml:4.1.2")
 }
 
 def targetJavaVersion = 17
