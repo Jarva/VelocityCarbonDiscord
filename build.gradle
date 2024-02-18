@@ -34,7 +34,7 @@ tasks.runVelocity {
         hangar 'Carbon', '3.0.0-beta.26'
         github 'MiniPlaceholders', 'MiniPlaceholders', '2.2.3', 'MiniPlaceholders-Velocity-2.2.3.jar'
         url 'https://download.luckperms.net/1531/velocity/LuckPerms-Velocity-5.4.118.jar'
-        url 'https://github.com/unilock/YepLib/releases/download/2.0.0/yeplib-2.0.0.jar'
+        url 'https://github.com/unilock/YepLib/releases/download/2.1.0/yeplib-2.1.0.jar'
     }
 }
 
@@ -84,7 +84,7 @@ dependencies {
 
     compileOnly "io.github.miniplaceholders:miniplaceholders-api:2.2.3"
 
-    compileOnly "com.github.unilock:yeplib:2.0.0"
+    compileOnly "com.github.unilock:yeplib:2.1.0"
 
     shade("net.dv8tion:JDA:5.0.0-beta.20") {
         exclude module: 'opus-java'

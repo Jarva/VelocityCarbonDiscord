@@ -14,6 +14,13 @@ discord:
     # Available placeholders: N/A
     shutdown_message: '**Proxy shutting down**'
     start_message: '**Ready for connections**'
+    # Additional placeholders: <displayname> <title> <description>
+    advancement_default_message: "**<username>** has just earned the achievement [<title>]** _(<description>)_"
+    advancement_challenge_message: "**<username>** has completed the challenge [<title>]** _(<description>)_"
+    advancement_goal_message: "**<username>** has reached the goal [<title>]** _(<description>)_"
+    advancement_task_message: "**<username>** has made the advancement [<title>]** _(<description>)_"
+    # Additional placeholders: <displayname> <message>
+    death_message: "**<message>**"
   webhook:
     # Available placeholders: <displayname> <username> <uuid>
     avatar_url: 'https://crafatar.com/renders/head/<uuid>?overlay'
