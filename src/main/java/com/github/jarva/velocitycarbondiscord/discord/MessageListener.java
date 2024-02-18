@@ -1,5 +1,6 @@
 package com.github.jarva.velocitycarbondiscord.discord;
 
+import cc.unilock.yeplib.api.AdvancementType;
 import com.github.jarva.velocitycarbondiscord.VelocityCarbonDiscord;
 import com.github.jarva.velocitycarbondiscord.config.Config;
 import com.github.jarva.velocitycarbondiscord.util.ChannelConfigUtil;
@@ -68,7 +69,7 @@ public class MessageListener extends ListenerAdapter {
 
         this.subscription = CarbonChatProvider.carbonChat().eventHandler().subscribe(CarbonChatEvent.class, 0, true, this::onPlayerChat);
         if (VelocityCarbonDiscord.yeplib) {
-            this.yep = new YepListener(this, server);
+            this.yep = new YepListener(this);
         }
         VelocityCarbonDiscord.getLogger().info("Created listener for channels {} {}", this.channelName, this.config.channelId());
     }
@@ -174,7 +175,7 @@ public class MessageListener extends ListenerAdapter {
         sendMessageToDiscord(renderedMessage, event.sender());
     }
 
-    public void onPlayerAdvancement(Player player, String type, String title, String description) {
+    public void onPlayerAdvancement(Player player, AdvancementType type, String title, String description) {
         CarbonChatProvider.carbonChat().userManager().user(player.getUniqueId()).thenAccept(carbonPlayer -> {
             if (!carbonPlayer.selectedChannel().key().equals(channelName)) return;
 
@@ -186,9 +187,9 @@ public class MessageListener extends ListenerAdapter {
                     .build();
 
             String format = switch (type) {
-                case "adv_goal" -> this.config.advancementGoal();
-                case "adv_task" -> this.config.advancementTask();
-                case "adv_challenge" -> this.config.advancementChallenge();
+                case CHALLENGE -> this.config.advancementChallenge();
+                case GOAL -> this.config.advancementGoal();
+                case TASK -> this.config.advancementTask();
                 default -> this.config.advancementDefault();
             };
 
