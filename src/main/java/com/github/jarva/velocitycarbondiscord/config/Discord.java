@@ -58,12 +58,12 @@ public class Discord {
         public String serverSwitch;
         @Setting("advancement_default_message")
         public String advancementDefault;
+        @Setting("advancement_challenge_message")
+        public String advancementChallenge;
         @Setting("advancement_goal_message")
         public String advancementGoal;
         @Setting("advancement_task_message")
         public String advancementTask;
-        @Setting("advancement_challenge_message")
-        public String advancementChallenge;
         @Setting("death_message")
         public String death;
     }

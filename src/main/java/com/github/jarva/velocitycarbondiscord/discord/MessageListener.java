@@ -176,7 +176,6 @@ public class MessageListener extends ListenerAdapter {
 
     public void onPlayerAdvancement(Player player, String type, String title, String description) {
         CarbonChatProvider.carbonChat().userManager().user(player.getUniqueId()).thenAccept(carbonPlayer -> {
-            if (!config.shouldBroadcastEvents()) return;
             if (!carbonPlayer.selectedChannel().key().equals(channelName)) return;
 
             TagResolver resolver = TagResolver.builder()
@@ -200,7 +199,6 @@ public class MessageListener extends ListenerAdapter {
 
     public void onPlayerDeath(Player player, String message) {
         CarbonChatProvider.carbonChat().userManager().user(player.getUniqueId()).thenAccept(carbonPlayer -> {
-            if (!config.shouldBroadcastEvents()) return;
             if (!carbonPlayer.selectedChannel().key().equals(channelName)) return;
 
             TagResolver resolver = TagResolver.builder()
@@ -209,7 +207,7 @@ public class MessageListener extends ListenerAdapter {
                     .tag("message", PlaceholderUtil.wrapString(message))
                     .build();
 
-            Component renderedMessage = PlaceholderUtil.resolvePlaceholders("", resolver, carbonPlayer);
+            Component renderedMessage = PlaceholderUtil.resolvePlaceholders(this.config.death(), resolver, carbonPlayer);
             sendMessageToDiscord(renderedMessage);
         });
     }
