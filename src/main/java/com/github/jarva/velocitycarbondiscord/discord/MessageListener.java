@@ -177,7 +177,7 @@ public class MessageListener extends ListenerAdapter {
 
     public void onPlayerAdvancement(Player player, AdvancementType type, String title, String description) {
         CarbonChatProvider.carbonChat().userManager().user(player.getUniqueId()).thenAccept(carbonPlayer -> {
-            if (!carbonPlayer.selectedChannel().key().equals(channelName)) return;
+            if (!getSelectedChannelOrDefault(carbonPlayer).key().equals(channelName)) return;
 
             TagResolver resolver = TagResolver.builder()
                     .tag("username", PlaceholderUtil.wrapString(carbonPlayer.username()))
@@ -200,7 +200,7 @@ public class MessageListener extends ListenerAdapter {
 
     public void onPlayerDeath(Player player, String message) {
         CarbonChatProvider.carbonChat().userManager().user(player.getUniqueId()).thenAccept(carbonPlayer -> {
-            if (!carbonPlayer.selectedChannel().key().equals(channelName)) return;
+            if (!getSelectedChannelOrDefault(carbonPlayer).key().equals(channelName)) return;
 
             TagResolver resolver = TagResolver.builder()
                     .tag("username", PlaceholderUtil.wrapString(carbonPlayer.username()))
@@ -320,7 +320,7 @@ public class MessageListener extends ListenerAdapter {
         ChatChannel channel = CarbonChatProvider.carbonChat().channelRegistry().channel(channelName);
         if (channel == null) return;
         CarbonChatProvider.carbonChat().server().players().stream()
-                .filter(player -> channel.equals(player.selectedChannel()))
+                .filter(player -> channel.equals(getSelectedChannelOrDefault(player)))
                 .filter(player -> channel.hearingPermitted(player).permitted())
                 .forEach(player -> player.sendMessage(message));
         CarbonChatProvider.carbonChat().server().console().sendMessage(message);
@@ -363,5 +363,9 @@ public class MessageListener extends ListenerAdapter {
                 .setAvatarUrl(PlaceholderUtil.plainText(avatarComponent))
                 .setUsername(PlaceholderUtil.plainText(usernameComponent))
                 .queue();
+    }
+
+    private ChatChannel getSelectedChannelOrDefault(CarbonPlayer player) {
+        return Objects.requireNonNullElse(player.selectedChannel(), CarbonChatProvider.carbonChat().channelRegistry().defaultChannel());
     }
 }
