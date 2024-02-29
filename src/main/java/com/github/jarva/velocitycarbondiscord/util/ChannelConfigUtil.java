@@ -81,6 +81,9 @@ public class ChannelConfigUtil {
     public String disconnect() {
         return channel.discord.messages.disconnect != null ? channel.discord.messages.disconnect : config.discord.messages.disconnect;
     }
+    public String disconnectServer() {
+        return channel.discord.messages.disconnectServer != null ? channel.discord.messages.disconnectServer : config.discord.messages.disconnectServer;
+    }
     public String start() {
         return channel.discord.messages.start != null ? channel.discord.messages.start : config.discord.messages.start;
     }

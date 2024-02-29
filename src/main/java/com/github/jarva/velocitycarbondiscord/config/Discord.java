@@ -50,6 +50,8 @@ public class Discord {
         public String leave;
         @Setting("disconnect_message")
         public String disconnect;
+        @Setting("disconnect_server_message")
+        public String disconnectServer;
         @Setting("shutdown_message")
         public String shutdown;
         @Setting("start_message")

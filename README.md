@@ -50,6 +50,8 @@ discord:
       leave_message: '**<username> left <server>**'
       # Additional placeholders: N/A
       disconnect_message: '**<username> was disconnected**'
+      # Additional placeholders: <server>
+      disconnect_server_message: '**<username> was disconnected from <server>**'
       # Additional placeholders: <previous_server> <server>
       server_switch_message: '**<username> moved from <previous_server> to <server>**'
       # Available placeholders: N/A

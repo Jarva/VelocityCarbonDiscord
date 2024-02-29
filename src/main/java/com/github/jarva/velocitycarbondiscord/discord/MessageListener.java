@@ -22,7 +22,12 @@ import net.draycia.carbon.api.event.CarbonEventSubscription;
 import net.draycia.carbon.api.event.events.CarbonChatEvent;
 import net.draycia.carbon.api.users.CarbonPlayer;
 import net.dv8tion.jda.api.JDA;
-import net.dv8tion.jda.api.entities.*;
+import net.dv8tion.jda.api.entities.IncomingWebhookClient;
+import net.dv8tion.jda.api.entities.Member;
+import net.dv8tion.jda.api.entities.Message;
+import net.dv8tion.jda.api.entities.MessageReference;
+import net.dv8tion.jda.api.entities.User;
+import net.dv8tion.jda.api.entities.WebhookClient;
 import net.dv8tion.jda.api.entities.channel.ChannelType;
 import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
@@ -38,7 +43,10 @@ import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.text.MessageFormat;
-import java.util.*;
+import java.util.AbstractMap;
+import java.util.HashMap;
+import java.util.Objects;
+import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -237,8 +245,8 @@ public class MessageListener extends ListenerAdapter {
     @Subscribe
     public void onDisconnect(DisconnectEvent event) {
         if (!config.shouldBroadcastEvents()) return;
-        if (!event.getLoginStatus().equals(DisconnectEvent.LoginStatus.SUCCESSFUL_LOGIN)) return;
 
+        DisconnectEvent.LoginStatus loginStatus = event.getLoginStatus();
         Player player = event.getPlayer();
         String username = player.getUsername();
         Optional<ServerConnection> server = player.getCurrentServer();
@@ -250,7 +258,7 @@ public class MessageListener extends ListenerAdapter {
                     .tag("server", PlaceholderUtil.wrapString(server.get().getServerInfo().getName()));
         }
 
-        String message = server.isPresent() ? this.config.leave() : this.config.disconnect();
+        String message = (loginStatus != null && loginStatus.equals(DisconnectEvent.LoginStatus.SUCCESSFUL_LOGIN)) ? this.config.leave() : server.isPresent() ? this.config.disconnectServer() : this.config.disconnect();
 
         Component renderedMessage = PlaceholderUtil.resolvePlaceholders(message, builder.build(), event.getPlayer());
         sendMessageToDiscord(renderedMessage);
