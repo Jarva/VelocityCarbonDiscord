@@ -137,15 +137,13 @@ public class MessageListener extends ListenerAdapter {
             Message refMessage = ref.getMessage() == null ? ref.resolve().complete() : ref.getMessage();
             User refAuthor = refMessage.getAuthor();
             Member refMember = refMessage.getMember();
-            if (refMember != null) {
-                reply_chunk = PlaceholderUtil.resolvePlaceholders(this.config.replyFormat(), builder
-                        .tag("reply_username", PlaceholderUtil.wrapString(refAuthor.getName()))
-                        .tag("reply_nickname", PlaceholderUtil.wrapString(refMember.getEffectiveName()))
-                        .tag("reply_message", PlaceholderUtil.wrapString(refMessage.getContentDisplay()))
-                        .tag("reply_role_color", PlaceholderUtil.wrapString(DiscordUtil.getHexColor(refMember)))
-                        .tag("reply_url", PlaceholderUtil.wrapString(refMessage.getJumpUrl()))
-                        .build());
-            }
+            reply_chunk = PlaceholderUtil.resolvePlaceholders(this.config.replyFormat(), builder
+                    .tag("reply_username", PlaceholderUtil.wrapString(refAuthor.getName()))
+                    .tag("reply_nickname", PlaceholderUtil.wrapString(refMember == null ? refAuthor.getEffectiveName() : refMember.getEffectiveName()))
+                    .tag("reply_message", PlaceholderUtil.wrapString(refMessage.getContentDisplay()))
+                    .tag("reply_role_color", PlaceholderUtil.wrapString(refMember == null ? DiscordUtil.COLOR_WHITE : DiscordUtil.getHexColor(refMember)))
+                    .tag("reply_url", PlaceholderUtil.wrapString(refMessage.getJumpUrl()))
+                    .build());
         }
         Component discord_chunk = PlaceholderUtil.resolvePlaceholders(this.config.discordFormat(), builder.build());
         Component username_chunk = PlaceholderUtil.resolvePlaceholders(this.config.usernameFormat(), builder.build());
