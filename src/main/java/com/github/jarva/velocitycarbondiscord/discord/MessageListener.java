@@ -1,14 +1,11 @@
 package com.github.jarva.velocitycarbondiscord.discord;
 
-import club.minnced.discord.webhook.WebhookClient;
-import club.minnced.discord.webhook.WebhookClientBuilder;
-import club.minnced.discord.webhook.send.WebhookMessage;
-import club.minnced.discord.webhook.send.WebhookMessageBuilder;
+import cc.unilock.yeplib.api.AdvancementType;
+import com.github.jarva.velocitycarbondiscord.VelocityCarbonDiscord;
+import com.github.jarva.velocitycarbondiscord.config.Config;
 import com.github.jarva.velocitycarbondiscord.util.ChannelConfigUtil;
 import com.github.jarva.velocitycarbondiscord.util.DiscordUtil;
 import com.github.jarva.velocitycarbondiscord.util.PlaceholderUtil;
-import com.github.jarva.velocitycarbondiscord.VelocityCarbonDiscord;
-import com.github.jarva.velocitycarbondiscord.config.Config;
 import com.velocitypowered.api.event.Subscribe;
 import com.velocitypowered.api.event.connection.DisconnectEvent;
 import com.velocitypowered.api.event.player.ServerConnectedEvent;
@@ -25,11 +22,18 @@ import net.draycia.carbon.api.event.CarbonEventSubscription;
 import net.draycia.carbon.api.event.events.CarbonChatEvent;
 import net.draycia.carbon.api.users.CarbonPlayer;
 import net.dv8tion.jda.api.JDA;
-import net.dv8tion.jda.api.entities.*;
+import net.dv8tion.jda.api.entities.IncomingWebhookClient;
+import net.dv8tion.jda.api.entities.Member;
+import net.dv8tion.jda.api.entities.Message;
+import net.dv8tion.jda.api.entities.MessageReference;
+import net.dv8tion.jda.api.entities.User;
+import net.dv8tion.jda.api.entities.WebhookClient;
 import net.dv8tion.jda.api.entities.channel.ChannelType;
 import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
+import net.dv8tion.jda.api.utils.messages.MessageCreateBuilder;
+import net.dv8tion.jda.api.utils.messages.MessageCreateData;
 import net.kyori.adventure.key.Key;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.TextReplacementConfig;
@@ -39,7 +43,10 @@ import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.text.MessageFormat;
-import java.util.*;
+import java.util.AbstractMap;
+import java.util.HashMap;
+import java.util.Objects;
+import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -48,8 +55,9 @@ public class MessageListener extends ListenerAdapter {
     private final ChannelConfigUtil config;
     private final Key channelName;
     public final CarbonEventSubscription<CarbonChatEvent> subscription;
+    public YepListener yep = null;
     private String webhookId = null;
-    private WebhookClient webhookClient = null;
+    private IncomingWebhookClient webhookClient = null;
     private static final Pattern WEBHOOK_ID_REGEX = Pattern.compile("^https://discord\\.com/api/webhooks/(\\d+)/.+$");
 
     public MessageListener(ProxyServer server, Config config, Config.Channel channel) {
@@ -59,7 +67,7 @@ public class MessageListener extends ListenerAdapter {
 
         if (this.config.webhookUrl() != null) {
             try {
-                this.webhookClient = new WebhookClientBuilder(this.config.webhookUrl()).build();
+                this.webhookClient = WebhookClient.createClient(VelocityCarbonDiscord.getDiscord().getClient(), this.config.webhookUrl());
                 final Matcher matcher = WEBHOOK_ID_REGEX.matcher(this.config.webhookUrl());
                 this.webhookId = matcher.find() ? matcher.group(1) : null;
             } catch (IllegalArgumentException err) {
@@ -68,6 +76,9 @@ public class MessageListener extends ListenerAdapter {
         }
 
         this.subscription = CarbonChatProvider.carbonChat().eventHandler().subscribe(CarbonChatEvent.class, 0, true, this::onPlayerChat);
+        if (VelocityCarbonDiscord.yeplib) {
+            this.yep = new YepListener(this);
+        }
         VelocityCarbonDiscord.getLogger().info("Created listener for channels {} {}", this.channelName, this.config.channelId());
     }
 
@@ -126,15 +137,13 @@ public class MessageListener extends ListenerAdapter {
             Message refMessage = ref.getMessage() == null ? ref.resolve().complete() : ref.getMessage();
             User refAuthor = refMessage.getAuthor();
             Member refMember = refMessage.getMember();
-            if (refMember != null) {
-                reply_chunk = PlaceholderUtil.resolvePlaceholders(this.config.replyFormat(), builder
-                        .tag("reply_username", PlaceholderUtil.wrapString(refAuthor.getName()))
-                        .tag("reply_nickname", PlaceholderUtil.wrapString(refMember.getEffectiveName()))
-                        .tag("reply_message", PlaceholderUtil.wrapString(refMessage.getContentDisplay()))
-                        .tag("reply_role_color", PlaceholderUtil.wrapString(DiscordUtil.getHexColor(refMember)))
-                        .tag("reply_url", PlaceholderUtil.wrapString(refMessage.getJumpUrl()))
-                        .build());
-            }
+            reply_chunk = PlaceholderUtil.resolvePlaceholders(this.config.replyFormat(), builder
+                    .tag("reply_username", PlaceholderUtil.wrapString(refAuthor.getName()))
+                    .tag("reply_nickname", PlaceholderUtil.wrapString(refMember == null ? refAuthor.getEffectiveName() : refMember.getEffectiveName()))
+                    .tag("reply_message", PlaceholderUtil.wrapString(refMessage.getContentDisplay()))
+                    .tag("reply_role_color", PlaceholderUtil.wrapString(refMember == null ? DiscordUtil.COLOR_WHITE : DiscordUtil.getHexColor(refMember)))
+                    .tag("reply_url", PlaceholderUtil.wrapString(refMessage.getJumpUrl()))
+                    .build());
         }
         Component discord_chunk = PlaceholderUtil.resolvePlaceholders(this.config.discordFormat(), builder.build());
         Component username_chunk = PlaceholderUtil.resolvePlaceholders(this.config.usernameFormat(), builder.build());
@@ -172,6 +181,44 @@ public class MessageListener extends ListenerAdapter {
         sendMessageToDiscord(renderedMessage, event.sender());
     }
 
+    public void onPlayerAdvancement(Player player, AdvancementType type, String title, String description) {
+        CarbonChatProvider.carbonChat().userManager().user(player.getUniqueId()).thenAccept(carbonPlayer -> {
+            if (!getSelectedChannelOrDefault(carbonPlayer).key().equals(channelName)) return;
+
+            TagResolver resolver = TagResolver.builder()
+                    .tag("username", PlaceholderUtil.wrapString(carbonPlayer.username()))
+                    .tag("displayname", Tag.selfClosingInserting(carbonPlayer.displayName()))
+                    .tag("title", PlaceholderUtil.wrapString(title))
+                    .tag("description", PlaceholderUtil.wrapString(description))
+                    .build();
+
+            String format = switch (type) {
+                case CHALLENGE -> this.config.advancementChallenge();
+                case GOAL -> this.config.advancementGoal();
+                case TASK -> this.config.advancementTask();
+                default -> this.config.advancementDefault();
+            };
+
+            Component renderedMessage = PlaceholderUtil.resolvePlaceholders(format, resolver, carbonPlayer);
+            sendMessageToDiscord(renderedMessage);
+        });
+    }
+
+    public void onPlayerDeath(Player player, String message) {
+        CarbonChatProvider.carbonChat().userManager().user(player.getUniqueId()).thenAccept(carbonPlayer -> {
+            if (!getSelectedChannelOrDefault(carbonPlayer).key().equals(channelName)) return;
+
+            TagResolver resolver = TagResolver.builder()
+                    .tag("username", PlaceholderUtil.wrapString(carbonPlayer.username()))
+                    .tag("displayname", Tag.selfClosingInserting(carbonPlayer.displayName()))
+                    .tag("message", PlaceholderUtil.wrapString(message))
+                    .build();
+
+            Component renderedMessage = PlaceholderUtil.resolvePlaceholders(this.config.death(), resolver, carbonPlayer);
+            sendMessageToDiscord(renderedMessage);
+        });
+    }
+
     @Subscribe
     public void onConnect(ServerConnectedEvent event) {
         if (!config.shouldBroadcastEvents()) return;
@@ -196,8 +243,8 @@ public class MessageListener extends ListenerAdapter {
     @Subscribe
     public void onDisconnect(DisconnectEvent event) {
         if (!config.shouldBroadcastEvents()) return;
-        if (!event.getLoginStatus().equals(DisconnectEvent.LoginStatus.SUCCESSFUL_LOGIN)) return;
 
+        DisconnectEvent.LoginStatus loginStatus = event.getLoginStatus();
         Player player = event.getPlayer();
         String username = player.getUsername();
         Optional<ServerConnection> server = player.getCurrentServer();
@@ -209,7 +256,7 @@ public class MessageListener extends ListenerAdapter {
                     .tag("server", PlaceholderUtil.wrapString(server.get().getServerInfo().getName()));
         }
 
-        String message = server.isPresent() ? this.config.leave() : this.config.disconnect();
+        String message = (loginStatus != null && loginStatus.equals(DisconnectEvent.LoginStatus.SUCCESSFUL_LOGIN)) ? this.config.leave() : server.isPresent() ? this.config.disconnectServer() : this.config.disconnect();
 
         Component renderedMessage = PlaceholderUtil.resolvePlaceholders(message, builder.build(), event.getPlayer());
         sendMessageToDiscord(renderedMessage);
@@ -278,9 +325,10 @@ public class MessageListener extends ListenerAdapter {
     private void sendMessageToMinecraft(Component message) {
         ChatChannel channel = CarbonChatProvider.carbonChat().channelRegistry().channel(channelName);
         if (channel == null) return;
-        CarbonChatProvider.carbonChat().server().players().stream().filter(player -> channel.hearingPermitted(player).permitted()).forEach(player -> {
-            player.sendMessage(message);
-        });
+        CarbonChatProvider.carbonChat().server().players().stream()
+                .filter(player -> channel.equals(getSelectedChannelOrDefault(player)))
+                .filter(player -> channel.hearingPermitted(player).permitted())
+                .forEach(player -> player.sendMessage(message));
         CarbonChatProvider.carbonChat().server().console().sendMessage(message);
     }
 
@@ -314,11 +362,16 @@ public class MessageListener extends ListenerAdapter {
 
         Component usernameComponent = PlaceholderUtil.resolvePlaceholders(this.config.webhookUsername(), resolver, player);
         Component avatarComponent = PlaceholderUtil.resolvePlaceholders(this.config.webhookAvatarUrl(), resolver, player);
-        WebhookMessage webhookMessage = new WebhookMessageBuilder()
-                .setAvatarUrl(PlaceholderUtil.plainText(avatarComponent))
+        MessageCreateData webhookMessage = new MessageCreateBuilder()
                 .setContent(PlaceholderUtil.plainText(message))
-                .setUsername(PlaceholderUtil.plainText(usernameComponent))
                 .build();
-        webhookClient.send(webhookMessage).join();
+        webhookClient.sendMessage(webhookMessage)
+                .setAvatarUrl(PlaceholderUtil.plainText(avatarComponent))
+                .setUsername(PlaceholderUtil.plainText(usernameComponent))
+                .queue();
+    }
+
+    private ChatChannel getSelectedChannelOrDefault(CarbonPlayer player) {
+        return Objects.requireNonNullElse(player.selectedChannel(), CarbonChatProvider.carbonChat().channelRegistry().defaultChannel());
     }
 }

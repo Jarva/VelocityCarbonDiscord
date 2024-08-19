@@ -50,11 +50,23 @@ public class Discord {
         public String leave;
         @Setting("disconnect_message")
         public String disconnect;
+        @Setting("disconnect_server_message")
+        public String disconnectServer;
         @Setting("shutdown_message")
         public String shutdown;
         @Setting("start_message")
         public String start;
         @Setting("server_switch_message")
         public String serverSwitch;
+        @Setting("advancement_default_message")
+        public String advancementDefault;
+        @Setting("advancement_challenge_message")
+        public String advancementChallenge;
+        @Setting("advancement_goal_message")
+        public String advancementGoal;
+        @Setting("advancement_task_message")
+        public String advancementTask;
+        @Setting("death_message")
+        public String death;
     }
 }

@@ -89,6 +89,9 @@ public class ClientHolder extends ListenerAdapter {
         for (MessageListener listener : listeners) {
             listener.subscription.dispose();
             this.server.getEventManager().unregisterListener(instance, listener);
+            if (VelocityCarbonDiscord.yeplib) {
+                this.server.getEventManager().unregisterListener(instance, listener.yep);
+            }
             this.jda.removeEventListener(listener);
         }
         listeners.clear();
@@ -103,9 +106,12 @@ public class ClientHolder extends ListenerAdapter {
 
     public void initialize(VelocityCarbonDiscord instance) {
         addListeners();
-        for (ListenerAdapter listener : listeners) {
+        for (MessageListener listener : listeners) {
             this.jda.addEventListener(listener);
             this.server.getEventManager().register(instance, listener);
+            if (VelocityCarbonDiscord.yeplib) {
+                this.server.getEventManager().register(instance, listener.yep);
+            }
         }
         this.jda.addEventListener(this);
     }

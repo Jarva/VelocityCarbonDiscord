@@ -3,14 +3,14 @@ plugins {
     id 'eclipse'
     id 'idea'
     id 'com.github.johnrengelman.shadow' version '8.1.1'
-    id 'xyz.jpenilla.run-velocity' version '2.2.2'
+    id 'xyz.jpenilla.run-velocity' version '2.2.3'
     id 'net.kyori.blossom' version '2.1.0'
     id "com.modrinth.minotaur" version "2.+"
-    id "co.uzzu.dotenv.gradle" version "3.0.0"
+    id "co.uzzu.dotenv.gradle" version "4.0.0"
 }
 
 group = 'com.github.jarva'
-version = '1.1.1'
+version = '2.0.1'
 
 repositories {
     mavenCentral()
@@ -22,14 +22,19 @@ repositories {
         name = "sonatype"
         url = "https://s01.oss.sonatype.org/content/repositories/snapshots/"
     }
+    maven {
+        name = "jitpack"
+        url = "https://jitpack.io/"
+    }
 }
 
 tasks.runVelocity {
-    velocityVersion '3.2.0-SNAPSHOT'
+    velocityVersion '3.3.0-SNAPSHOT'
     downloadPlugins {
-        hangar 'Carbon', '3.0.0-beta.25'
+        hangar 'Carbon', '3.0.0-beta.26'
         github 'MiniPlaceholders', 'MiniPlaceholders', '2.2.3', 'MiniPlaceholders-Velocity-2.2.3.jar'
-        url 'https://download.luckperms.net/1524/velocity/LuckPerms-Velocity-5.4.111.jar'
+        url 'https://download.luckperms.net/1531/velocity/LuckPerms-Velocity-5.4.118.jar'
+        url 'https://github.com/unilock/YepLib/releases/download/2.1.0/yeplib-2.1.0.jar'
     }
 }
 
@@ -72,17 +77,16 @@ shadowJar {
 }
 
 dependencies {
-    compileOnly "com.velocitypowered:velocity-api:3.2.0-SNAPSHOT"
-    annotationProcessor "com.velocitypowered:velocity-api:3.2.0-SNAPSHOT"
+    compileOnly "com.velocitypowered:velocity-api:3.3.0-SNAPSHOT"
+    annotationProcessor "com.velocitypowered:velocity-api:3.3.0-SNAPSHOT"
 
-    compileOnly 'de.hexaoxi:carbonchat-api:3.0.0-beta.25'
+    compileOnly "de.hexaoxi:carbonchat-api:3.0.0-beta.26"
 
-    compileOnly "io.github.miniplaceholders:miniplaceholders-api:2.2.0"
+    compileOnly "io.github.miniplaceholders:miniplaceholders-api:2.2.3"
 
-    shade("club.minnced:discord-webhooks:0.8.4") {
-        exclude group: 'org.slf4j'
-    }
-    shade("net.dv8tion:JDA:5.0.0-beta.10") {
+    compileOnly "com.github.unilock:yeplib:2.1.0"
+
+    shade("net.dv8tion:JDA:5.0.0-beta.20") {
         exclude module: 'opus-java'
         exclude group: 'org.slf4j'
     }
@@ -90,7 +94,7 @@ dependencies {
         exclude group : 'net.kyori'
     }
 
-    shade('org.spongepowered:configurate-yaml:4.1.2')
+    shade("org.spongepowered:configurate-yaml:4.1.2")
 }
 
 def targetJavaVersion = 17
@@ -120,6 +124,30 @@ modrinth {
     projectId = "velocity-carbon-discord"
     uploadFile = shadowJar
     gameVersions = [
+                "1.7.2",
+                "1.7.3",
+                "1.7.4",
+                "1.7.5",
+                "1.7.6",
+                "1.7.7",
+                "1.7.8",
+                "1.7.9",
+                "1.7.10",
+                "1.8",
+                "1.8.1",
+                "1.8.2",
+                "1.8.3",
+                "1.8.4",
+                "1.8.5",
+                "1.8.6",
+                "1.8.7",
+                "1.8.8",
+                "1.8.9",
+                "1.9",
+                "1.9.1",
+                "1.9.2",
+                "1.9.3",
+                "1.9.4",
                 "1.10",
                 "1.10.1",
                 "1.10.2",
@@ -160,21 +188,7 @@ modrinth {
                 "1.20.1",
                 "1.20.2",
                 "1.20.3",
-                "1.8",
-                "1.8.1",
-                "1.8.2",
-                "1.8.3",
-                "1.8.4",
-                "1.8.5",
-                "1.8.6",
-                "1.8.7",
-                "1.8.8",
-                "1.8.9",
-                "1.9",
-                "1.9.1",
-                "1.9.2",
-                "1.9.3",
-                "1.9.4"
+                "1.20.4"
         ]
     loaders = ["velocity"]
     dependencies {
