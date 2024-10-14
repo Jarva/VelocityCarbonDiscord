@@ -326,7 +326,6 @@ public class MessageListener extends ListenerAdapter {
         ChatChannel channel = CarbonChatProvider.carbonChat().channelRegistry().channel(channelName);
         if (channel == null) return;
         CarbonChatProvider.carbonChat().server().players().stream()
-                .filter(player -> channel.equals(getSelectedChannelOrDefault(player)))
                 .filter(player -> channel.permissions().hearingPermitted(player).permitted())
                 .forEach(player -> player.sendMessage(message));
         CarbonChatProvider.carbonChat().server().console().sendMessage(message);
